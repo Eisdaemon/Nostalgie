@@ -1,12 +1,10 @@
 #! Python3
 # Nostalgie-Inator - Opens up images of a ceratin folder, which were created one or more years ago on the same day
-import logging, os, pyperclip
+import logging, os, pyperclip, module1
 from pathlib import Path
 from datetime import date
 from PIL import Image
 from PIL.ExifTags import TAGS
-
-import module1
 logging.basicConfig(filename = 'E:\\Dokumente\\TestPython\\nostalgieLog.txt', level=logging.ERROR, format=' %(asctime)s - %(levelname) s - %(message)s')
 logging.debug('Start of programm')
 #Path of Nostalige Folder
