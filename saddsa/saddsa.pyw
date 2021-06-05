@@ -6,9 +6,9 @@ from datetime import date
 from PIL import Image
 from PIL.ExifTags import TAGS
 
-logging.basicConfig(filename = 'E:\\Dokumente\\TestPython\\nostalgieLog.txt', level=logging.DEBUG, format=' %(asctime)s - %(levelname) s - %(message)s')
+import  module1
+logging.basicConfig(filename = 'E:\\Dokumente\\TestPython\\nostalgieLog.txt', level=logging.ERROR, format=' %(asctime)s - %(levelname) s - %(message)s')
 logging.debug('Start of programm')
-
 #Path of Nostalige Folder
 p = Path('E:/Bilder/Nostalgie')
 #Take the current date and split it up into comparable values
@@ -24,9 +24,12 @@ for filenames in p.rglob('*.*'):
     image = Image.open(filenames)
 
     #All Tags
-    for tag, value in image._getexif().items():
-        if tag in TAGS:
-            exif[TAGS[tag]] = value
+    try:
+        for tag, value in image._getexif().items():
+            if tag in TAGS:
+                exif[TAGS[tag]] = value
+    except:
+        logging.error(f'"{filenames}" has a lack of Metadata')
     #Creation date
     if 'DateTimeOriginal' in exif:
         orignalTime = exif['DateTimeOriginal']
@@ -39,7 +42,9 @@ for filenames in p.rglob('*.*'):
         yearp = int(yearp)
         monthp = int(monthp)
         dayp = int(dayp)
-        #Check if Nostalgie is right
+        image.close()
+        #Renames it smartly
+        module1.renameSmartly(dayp, monthp, yearp, filenames, p)
         if (yearp != year)  &  (monthp == month) & (dayp == day):
             #Message
             difference = year - yearp
@@ -49,4 +54,5 @@ for filenames in p.rglob('*.*'):
                 message = (f'Heute vor {difference} Jahren')
             logging.info(message)
             pyperclip.copy(message)
-            os.startfile(filenames)
+            os.startfile(filenames)     
+logging.info('End of Program')

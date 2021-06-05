@@ -3,10 +3,35 @@
 import logging, os, pyperclip
 from pathlib import Path
 from datetime import date
+from datetime import datetime
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+from io import BytesIO
+import win32clipboard
 from PIL.ExifTags import TAGS
+import parsedatetime
 
-import  module1
+#Puts out the weekday in German
+def getWochentag(datum):
+    weekday = datum.weekday()
+    if(weekday == 0): return "Montag"
+    elif(weekday == 1): return "Dienstag"
+    elif(weekday == 2): return "Mittwoch"
+    elif(weekday == 3): return "Donnerstag"
+    elif(weekday == 4): return "Freitag"
+    elif(weekday == 5): return "Samstag"
+    elif(weekday == 6): return "Sonntag"
+    else: return ""
+
+#Copies the Image
+def send_to_clipboard(clip_type, data):
+    win32clipboard.OpenClipboard()
+    win32clipboard.EmptyClipboard()
+    win32clipboard.SetClipboardData(clip_type, data)
+    win32clipboard.CloseClipboard()
+
+import module1
 logging.basicConfig(filename = 'E:\\Dokumente\\TestPython\\nostalgieLog.txt', level=logging.ERROR, format=' %(asctime)s - %(levelname) s - %(message)s')
 logging.debug('Start of programm')
 #Path of Nostalige Folder
@@ -45,14 +70,33 @@ for filenames in p.rglob('*.*'):
         image.close()
         #Renames it smartly
         module1.renameSmartly(dayp, monthp, yearp, filenames, p)
-        if (yearp != year)  &  (monthp == month) & (dayp == day):
+        if (yearp != year) & (monthp == month) & (dayp == day):
             #Message
             difference = year - yearp
             if difference == 1:
                 message = ('Heute vor einem Jahr:')
             else:
-                message = (f'Heute vor {difference} Jahren')
+                message = (f'Heute vor {difference} Jahren:')
             logging.info(message)
-            pyperclip.copy(message)
-            os.startfile(filenames)     
+            img = Image.open(filenames)
+            #Draws the Text
+            I1 = ImageDraw.Draw(img)
+            font = ImageFont.truetype("georgia.ttf", 50)
+            I1.text((30, 30), message, font=font, fill=(255, 255, 255))
+            I1 = ImageDraw.Draw(img)
+            #Get Wochentag
+            d = datetime(yearp, monthp, dayp, 12, 00)
+            print(d)
+            wochentag = getWochentag(d)
+            font = ImageFont.truetype("georgia.ttf", 80)
+            width = img.width / 2 - 200
+            height = img.height - 120
+            I1.text((width, height), wochentag, font=font, fill=(255, 255, 255))
+            #Shows and call copy
+            img.show()
+            output = BytesIO()
+            img.convert("RGB").save(output, "BMP")
+            data = output.getvalue()[14:]
+            output.close()
+            send_to_clipboard(win32clipboard.CF_DIB, data)
 logging.info('End of Program')
